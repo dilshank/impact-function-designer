@@ -1,0 +1,1370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Damage function designer</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F5F2}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fld label,.lbl{font-size:12px;font-weight:500;color:#4A5160;letter-spacing:.02em}
+.inp{font:400 14px/1.2 'IBM Plex Mono',ui-monospace,monospace;color:#14181F;background:#FFFFFF;border:1px solid #C9CDD4;border-radius:6px;padding:0 10px;height:40px;box-sizing:border-box;width:100%;min-width:0}
+.inp:focus{outline:2px solid #1D4ED8;outline-offset:1px;border-color:#1D4ED8}
+.inp.txt{font-family:'IBM Plex Sans',system-ui,sans-serif}
+textarea.inp{height:auto;min-height:72px;padding:8px 10px;resize:vertical;line-height:1.5}
+.btn{font:500 13px/1 'IBM Plex Sans',system-ui,sans-serif;min-height:40px;padding:0 14px;border-radius:6px;border:1px solid #C9CDD4;background:#FFFFFF;color:#14181F;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{background:#ECEEEA}
+.btn:focus-visible{outline:2px solid #1D4ED8;outline-offset:2px}
+.btn:disabled{opacity:.45;cursor:default}
+.icon-btn{width:40px;padding:0;justify-content:center;color:#4A5160}
+.card{background:#FFFFFF;border:1px solid #DCDFD8;border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box;min-width:0}
+.sec-head{display:flex;flex-direction:column;gap:2px}
+.sec-h{margin:0;font-size:16px;font-weight:600;letter-spacing:-.005em}
+.sec-sub{margin:0;font-size:13px;color:#4A5160}
+.sub-h{margin:0;font-size:13px;font-weight:600;color:#14181F}
+.sdk{font:400 11px 'IBM Plex Mono',monospace;color:#6B7280;letter-spacing:0;margin-left:4px}
+.two-col{display:grid;grid-template-columns:minmax(300px,3fr) minmax(0,7fr);gap:24px;align-items:stretch}
+.two-col>*{min-width:0}
+.halves{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+@media (max-width:900px){.two-col,.halves{grid-template-columns:minmax(0,1fr)}}
+.affix{display:flex;align-items:center;gap:6px;height:40px;box-sizing:border-box;padding:0 10px;border:1px solid #C9CDD4;border-radius:6px;background:#FFFFFF;min-width:0}
+.affix:focus-within{outline:2px solid #1D4ED8;outline-offset:1px;border-color:#1D4ED8}
+.affix-inp{flex:1 1 auto;min-width:0;width:100%;height:100%;border:0;outline:0;padding:0;background:transparent;font:400 14px 'IBM Plex Mono',ui-monospace,monospace;color:#14181F;text-align:right}
+.affix-pre,.affix-suf{flex:none;font:400 12px 'IBM Plex Mono',ui-monospace,monospace;color:#6B7280}
+.seg{display:flex;flex-wrap:wrap;gap:4px;padding:3px;border:1px solid #C9CDD4;border-radius:8px;background:#FFFFFF}
+.seg-btn{font:500 13px 'IBM Plex Sans',sans-serif;min-height:36px;padding:0 12px;border:0;border-radius:6px;cursor:pointer}
+.chip{font:500 12px 'IBM Plex Mono',monospace;padding:3px 8px;border-radius:999px;background:#F4F5F2;color:#4A5160;white-space:nowrap}
+.formula{font:400 12px 'IBM Plex Mono',monospace;color:#4A5160;background:#F4F5F2;padding:8px 10px;border-radius:6px;overflow-wrap:anywhere}
+.hint{margin:0;font-size:12px;color:#6B7280}
+pre{margin:0}
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #14181F; background: #F4F5F2; min-height: 100vh; padding: 32px 24px 48px; box-sizing: border-box">
+<div style="max-width: 1360px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px">
+
+<header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid #D6D9D2">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font: 500 12px 'IBM Plex Mono', monospace; color: #4A5160; letter-spacing: .06em; text-transform: uppercase">CRC impact definition</div>
+<h1 style="margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -0.01em">Damage function designer</h1>
+<p style="margin: 0; font-size: 14px; color: #4A5160; max-width: 720px">Author an immutable impact definition: calibration, model, final clamp and provenance. No exposure data, output or spatial settings belong in it.</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span class="chip">crc-impact-contracts 1.0.0</span>
+<span class="chip">schema_version 1.0</span>
+<span class="chip">semantics crc-impact/1</span>
+</div>
+</header>
+
+<!-- Row 1: calibration -->
+<section class="card">
+<div class="sec-head"><h2 class="sec-h">Calibration</h2><p class="sec-sub">Declared units and meaning of the function's argument and response. Calibration never changes the maths.</p></div>
+<div class="halves">
+<div style="display: flex; flex-direction: column; gap: 12px; min-width: 0">
+<h3 class="sub-h">Exposure</h3>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div class="fld" style="grid-column: 1 / -1"><label for="hz">Hazard preset</label>
+<select id="hz" class="inp txt" value="{{cal.preset}}" onChange="{{on.preset}}">
+<option value="flood">Riverine flood depth</option>
+<option value="wind">Wind speed</option>
+<option value="rx1day">Max 1-day precipitation</option>
+<option value="mcdd">Max consecutive dry days</option>
+<option value="hot">Hot days</option>
+<option value="frost">Frost days</option>
+<option value="cdd">Cooling degree days</option>
+<option value="tnn">Annual minimum temperature</option>
+<option value="custom">Custom exposure</option>
+</select>
+</div>
+<div class="fld"><label for="c-ev">Exposure variable <span class="sdk">exposure_variable</span></label><input id="c-ev" class="inp" type="text" value="{{cal.exposure_variable}}" onChange="{{on.exposure_variable}}" style="border-color: {{err.exposure_variable}}"></div>
+<div class="fld"><label for="c-eu">Exposure unit <span class="sdk">exposure_unit</span></label><input id="c-eu" class="inp" type="text" value="{{cal.exposure_unit}}" onChange="{{on.exposure_unit}}" style="border-color: {{err.exposure_unit}}"></div>
+<div class="fld"><label for="x-min">Plot from ({{cal.exposure_unit}})</label><input id="x-min" class="inp" type="text" inputmode="decimal" value="{{xMinStr}}" onChange="{{on.xMin}}"></div>
+<div class="fld"><label for="x-max">Plot to ({{cal.exposure_unit}})</label><input id="x-max" class="inp" type="text" inputmode="decimal" value="{{xMaxStr}}" onChange="{{on.xMax}}"></div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px; min-width: 0">
+<h3 class="sub-h">Impact</h3>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div class="fld" style="grid-column: 1 / -1"><label for="ip">Impact preset</label>
+<select id="ip" class="inp txt" value="{{cal.impactPreset}}" onChange="{{on.impactPreset}}">
+<option value="damage_ratio">Damage ratio, 0 to 1</option>
+<option value="damage_percent">Damage percentage</option>
+<option value="loss">Monetary loss</option>
+<option value="downtime">Downtime in days</option>
+<option value="crop_yield_change">Crop yield change</option>
+<option value="score">Score, no unit</option>
+<option value="custom">Custom response</option>
+</select>
+</div>
+<div class="fld"><label for="c-im">Impact metric <span class="sdk">impact_metric</span></label><input id="c-im" class="inp" type="text" value="{{cal.impact_metric}}" onChange="{{on.impact_metric}}" style="border-color: {{err.impact_metric}}"></div>
+<div class="fld"><label for="c-iu">Impact unit <span class="sdk">impact_unit</span></label><input id="c-iu" class="inp" type="text" placeholder="{{iu.placeholder}}" value="{{cal.impact_unit}}" onChange="{{on.impact_unit}}" style="border-color: {{err.impact_unit}}"></div>
+<p class="hint" style="grid-column: 1 / -1">{{iu.hint}}</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Row 2: model + chart -->
+<div class="two-col">
+<section class="card">
+<div class="sec-head"><h2 class="sec-h">Model</h2><p class="sec-sub">The kernel and every coefficient it needs.</p></div>
+<div role="group" aria-label="Model kind" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{kinds}}" as="t" hint-placeholder-count="4">
+<button type="button" aria-pressed="{{t.pressed}}" onClick="{{t.pick}}" style="cursor: pointer; text-align: left; display: flex; align-items: center; gap: 10px; padding: 10px; min-height: 52px; border-radius: 8px; border: 1px solid {{t.border}}; background: {{t.bg}}; color: #14181F; font-family: 'IBM Plex Sans', sans-serif">
+<svg aria-hidden="true" width="36" height="20" viewBox="0 0 40 20" fill="none" style="flex: none; stroke: {{t.stroke}}; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="{{t.glyph}}"></path></svg>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 600">{{t.label}}</span><span style="font: 400 11px 'IBM Plex Mono', monospace; color: #6B7280">{{t.tag}}</span></span>
+</button>
+</sc-for>
+</div>
+<div class="formula">{{formula}}</div>
+
+<sc-if value="{{isTabulated}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div class="fld"><label for="t-int">Between knots <span class="sdk">interpolation</span></label>
+<select id="t-int" class="inp txt" value="{{tab.interpolation}}" onChange="{{on.interpolation}}">
+<option value="linear">Linear</option>
+<option value="step_left">Step, hold left</option>
+<option value="step_right">Step, take right</option>
+</select>
+</div>
+<div class="fld"><label for="t-out">Outside the table <span class="sdk">outside_domain</span></label>
+<select id="t-out" class="inp txt" value="{{tab.outside}}" onChange="{{on.tabOutside}}">
+<option value="clamp">Hold end values</option>
+<option value="error">Reject (error)</option>
+</select>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1fr) 40px; gap: 8px; font-size: 12px; font-weight: 500; color: #4A5160">
+<span>#</span><span>x ({{cal.exposure_unit}})</span><span>y ({{iu.label}})</span><span></span>
+</div>
+<sc-for list="{{pointRows}}" as="k" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1fr) 40px; gap: 8px; align-items: center">
+<span style="font: 400 12px 'IBM Plex Mono', monospace; color: #6B7280">{{k.n}}</span>
+<div class="affix" style="border-color: {{k.xf.border}}">
+<sc-if value="{{k.xf.hasPrefix}}" hint-placeholder-val="{{false}}"><span class="affix-pre">{{k.xf.prefix}}</span></sc-if>
+<input class="affix-inp" type="text" inputmode="decimal" aria-label="{{k.xf.aria}}" placeholder="{{k.xf.placeholder}}" value="{{k.xf.value}}" onChange="{{k.xf.onChange}}" onBlur="{{k.xf.onBlur}}" onKeyDown="{{k.xf.onKeyDown}}">
+<sc-if value="{{k.xf.hasSuffix}}" hint-placeholder-val="{{true}}"><span class="affix-suf">{{k.xf.suffix}}</span></sc-if>
+</div>
+<div class="affix" style="border-color: {{k.yf.border}}">
+<sc-if value="{{k.yf.hasPrefix}}" hint-placeholder-val="{{false}}"><span class="affix-pre">{{k.yf.prefix}}</span></sc-if>
+<input class="affix-inp" type="text" inputmode="decimal" aria-label="{{k.yf.aria}}" placeholder="{{k.yf.placeholder}}" value="{{k.yf.value}}" onChange="{{k.yf.onChange}}" onBlur="{{k.yf.onBlur}}" onKeyDown="{{k.yf.onKeyDown}}">
+<sc-if value="{{k.yf.hasSuffix}}" hint-placeholder-val="{{false}}"><span class="affix-suf">{{k.yf.suffix}}</span></sc-if>
+</div>
+<button type="button" class="btn icon-btn" aria-label="{{k.removeAria}}" disabled="{{k.cannotRemove}}" onClick="{{k.remove}}">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+</button>
+</div>
+</sc-for>
+<button type="button" class="btn" onClick="{{addPoint}}" style="align-self: flex-start">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+Add knot
+</button>
+<p class="hint">x must strictly increase; order is kept, never sorted. y may rise or fall.</p>
+</div>
+</sc-if>
+
+<sc-if value="{{isBinned}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="fld"><label for="b-out">Outside the bins <span class="sdk">outside_domain</span></label>
+<select id="b-out" class="inp txt" value="{{bin.outside}}" onChange="{{on.binOutside}}">
+<option value="clamp">Use the nearest bin</option>
+<option value="error">Reject (error)</option>
+</select>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px; gap: 8px; font-size: 12px; font-weight: 500; color: #4A5160">
+<span>From ({{cal.exposure_unit}})</span><span>Value ({{iu.label}})</span><span></span>
+</div>
+<sc-for list="{{binRows}}" as="k" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px; gap: 8px; align-items: center">
+<div class="affix" style="border-color: {{k.ef.border}}">
+<sc-if value="{{k.ef.hasPrefix}}" hint-placeholder-val="{{false}}"><span class="affix-pre">{{k.ef.prefix}}</span></sc-if>
+<input class="affix-inp" type="text" inputmode="decimal" aria-label="{{k.ef.aria}}" placeholder="{{k.ef.placeholder}}" value="{{k.ef.value}}" onChange="{{k.ef.onChange}}" onBlur="{{k.ef.onBlur}}" onKeyDown="{{k.ef.onKeyDown}}">
+<sc-if value="{{k.ef.hasSuffix}}" hint-placeholder-val="{{true}}"><span class="affix-suf">{{k.ef.suffix}}</span></sc-if>
+</div>
+<div class="affix" style="border-color: {{k.vf.border}}">
+<sc-if value="{{k.vf.hasPrefix}}" hint-placeholder-val="{{false}}"><span class="affix-pre">{{k.vf.prefix}}</span></sc-if>
+<input class="affix-inp" type="text" inputmode="decimal" aria-label="{{k.vf.aria}}" placeholder="{{k.vf.placeholder}}" value="{{k.vf.value}}" onChange="{{k.vf.onChange}}" onBlur="{{k.vf.onBlur}}" onKeyDown="{{k.vf.onKeyDown}}">
+<sc-if value="{{k.vf.hasSuffix}}" hint-placeholder-val="{{false}}"><span class="affix-suf">{{k.vf.suffix}}</span></sc-if>
+</div>
+<button type="button" class="btn icon-btn" aria-label="{{k.removeAria}}" disabled="{{k.cannotRemove}}" onClick="{{k.remove}}">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+</button>
+</div>
+</sc-for>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px; gap: 8px; align-items: center">
+<div class="affix" style="border-color: {{lastEdge.border}}">
+<input class="affix-inp" type="text" inputmode="decimal" aria-label="{{lastEdge.aria}}" value="{{lastEdge.value}}" onChange="{{lastEdge.onChange}}" onBlur="{{lastEdge.onBlur}}" onKeyDown="{{lastEdge.onKeyDown}}">
+<span class="affix-suf">{{lastEdge.suffix}}</span>
+</div>
+<span style="font-size: 12px; color: #4A5160">Final edge, included in the last bin</span>
+<span></span>
+</div>
+<button type="button" class="btn" onClick="{{addBin}}" style="align-self: flex-start">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+Add bin
+</button>
+<p class="hint">Each bin covers [from, next from); interior edges belong to the bin on their right.</p>
+</div>
+</sc-if>
+
+<sc-if value="{{isParametric}}" hint-placeholder-val="{{false}}">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{paramFields}}" as="f" hint-placeholder-count="4">
+<div class="fld" style="grid-column: {{f.col}}"><label for="{{f.id}}">{{f.label}} <span class="sdk">{{f.sdk}}</span></label>
+<div class="affix" style="border-color: {{f.border}}">
+<sc-if value="{{f.hasPrefix}}" hint-placeholder-val="{{false}}"><span class="affix-pre">{{f.prefix}}</span></sc-if>
+<input id="{{f.id}}" class="affix-inp" type="text" inputmode="decimal" placeholder="{{f.placeholder}}" value="{{f.value}}" onChange="{{f.onChange}}" onBlur="{{f.onBlur}}" onKeyDown="{{f.onKeyDown}}">
+<sc-if value="{{f.hasSuffix}}" hint-placeholder-val="{{true}}"><span class="affix-suf">{{f.suffix}}</span></sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{isSigmoid}}" hint-placeholder-val="{{false}}">
+<div class="fld"><label for="s-oa">At zero exposure <span class="sdk">origin_adjustment</span></label>
+<select id="s-oa" class="inp txt" value="{{sig.origin}}" onChange="{{on.origin_adjustment}}">
+<option value="none">No adjustment</option>
+<option value="subtract_at_zero">Subtract the curve's value at x = 0</option>
+</select>
+</div>
+</sc-if>
+<p class="hint">↑ ↓ step a value, Shift for ×10.</p>
+</section>
+
+<section class="card" style="gap: 12px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+<h2 class="sec-h">{{chartTitle}}</h2>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+<span class="chip">{{model.kind}}</span>
+<span class="chip" title="Monotonicity of the full function, including thresholds and clamp">{{mono}}</span>
+<button type="button" class="btn" aria-pressed="{{editOn}}" onClick="{{toggleEdit}}" style="min-height: 32px; padding: 0 10px; font-size: 12px; background: {{editBtn.bg}}; color: {{editBtn.fg}}; border-color: {{editBtn.border}}">
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"></path></svg>
+Edit on chart
+</button>
+</div>
+</div>
+<sc-if value="{{editOn}}" hint-placeholder-val="{{true}}">
+<p class="hint" style="margin-top: -4px">{{editHint}}</p>
+</sc-if>
+<div role="img" aria-label="{{chartAria}}" style="position: relative; padding: 28px 16px 76px {{g.padL}}px">
+<div data-plot="1" style="position: relative; height: 360px; border-left: 1px solid #4A5160; border-bottom: 1px solid #4A5160">
+<sc-for list="{{yTicks}}" as="t" hint-placeholder-count="6">
+<div style="position: absolute; left: 0; right: 0; bottom: {{t.pct}}%; height: 0; border-top: 1px solid #E6E8E3"></div>
+<div style="position: absolute; left: -6px; width: 6px; bottom: {{t.pct}}%; height: 0; border-top: 1px solid #4A5160"></div>
+<div style="position: absolute; right: calc(100% + 10px); bottom: {{t.pct}}%; transform: translateY(50%); font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #4A5160; white-space: nowrap">{{t.label}}</div>
+</sc-for>
+<sc-for list="{{yMinor}}" as="t" hint-placeholder-count="5">
+<div style="position: absolute; left: -3px; width: 3px; bottom: {{t.pct}}%; height: 0; border-top: 1px solid #8A909B"></div>
+</sc-for>
+<sc-for list="{{xTicks}}" as="t" hint-placeholder-count="6">
+<div style="position: absolute; top: 0; bottom: 0; left: {{t.pct}}%; width: 0; border-left: 1px solid #E6E8E3"></div>
+<div style="position: absolute; top: 100%; height: 6px; left: {{t.pct}}%; width: 0; border-left: 1px solid #4A5160"></div>
+<div style="position: absolute; top: calc(100% + 10px); left: {{t.pct}}%; transform: translateX(-50%); font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #4A5160; white-space: nowrap">{{t.label}}</div>
+</sc-for>
+<sc-for list="{{xMinor}}" as="t" hint-placeholder-count="6">
+<div style="position: absolute; top: 100%; height: 3px; left: {{t.pct}}%; width: 0; border-left: 1px solid #8A909B"></div>
+</sc-for>
+<sc-for list="{{errorZones}}" as="z" hint-placeholder-count="0">
+<div style="position: absolute; top: 0; bottom: 0; left: {{z.left}}%; width: {{z.width}}%; background: repeating-linear-gradient(135deg, rgba(185,28,28,.07) 0 6px, transparent 6px 12px)"></div>
+<div style="position: absolute; top: 6px; left: calc({{z.left}}% + 6px); font: 500 11px 'IBM Plex Mono', monospace; color: #B91C1C">out_of_domain</div>
+</sc-for>
+<sc-for list="{{clampLines}}" as="c" hint-placeholder-count="2">
+<div style="position: absolute; left: 0; right: 0; bottom: {{c.pct}}%; height: 0; border-top: 1px dashed #6B7280"></div>
+<div style="position: absolute; right: 4px; bottom: calc({{c.pct}}% + 3px); font: 500 11px 'IBM Plex Mono', monospace; color: #4A5160; background: rgba(255,255,255,.85); padding: 0 3px">{{c.label}}</div>
+</sc-for>
+<sc-if value="{{zeroX.show}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; top: 0; bottom: 0; left: {{zeroX.pct}}%; width: 0; border-left: 1px dashed #8A909B"></div>
+</sc-if>
+<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible">
+<path d="{{rawPath}}" style="fill: none; stroke: {{accent}}; stroke-width: 1.5; stroke-dasharray: 5 5; opacity: .45; vector-effect: non-scaling-stroke"></path>
+<path d="{{curvePath}}" style="fill: none; stroke: {{accent}}; stroke-width: 2.5; stroke-linejoin: round; vector-effect: non-scaling-stroke"></path>
+</svg>
+<sc-if value="{{probe.ok}}" hint-placeholder-val="{{true}}">
+<div style="position: absolute; left: {{probe.xp}}%; bottom: 0; height: {{probe.yp}}%; width: 0; border-left: 1.5px dashed #B45309"></div>
+<div style="position: absolute; left: 0; width: {{probe.xp}}%; bottom: {{probe.yp}}%; height: 0; border-top: 1.5px dashed #B45309"></div>
+<div style="position: absolute; left: {{probe.xp}}%; bottom: {{probe.yp}}%; width: 12px; height: 12px; box-sizing: border-box; border-radius: 50%; background: #B45309; border: 2px solid #FFFFFF; transform: translate(-50%, 50%)"></div>
+</sc-if>
+<sc-for list="{{knotDots}}" as="d" hint-placeholder-count="4">
+<div style="position: absolute; left: {{d.xp}}%; bottom: {{d.yp}}%; width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 2px solid {{d.stroke}}; transform: translate(-50%, 50%)"></div>
+</sc-for>
+<sc-for list="{{guides}}" as="gd" hint-placeholder-count="0">
+<div style="position: absolute; top: 0; bottom: 0; left: {{gd.xp}}%; width: 0; border-left: 1px dotted {{accent}}; opacity: .6"></div>
+</sc-for>
+<sc-for list="{{handles}}" as="h" hint-placeholder-count="4">
+<button type="button" aria-label="{{h.aria}}" title="{{h.title}}" onPointerDown="{{h.down}}" onPointerMove="{{h.move}}" onPointerUp="{{h.up}}" onPointerCancel="{{h.up}}" onKeyDown="{{h.key}}" style="position: absolute; left: {{h.xp}}%; bottom: {{h.yp}}%; transform: translate(-50%, 50%); width: {{h.w}}px; height: {{h.h}}px; padding: 0; box-sizing: border-box; border-radius: {{h.r}}; background: {{h.bg}}; border: 2px solid {{h.bc}}; cursor: {{h.cursor}}; touch-action: none; box-shadow: 0 1px 3px rgba(20,24,31,.25); z-index: 2"></button>
+<sc-if value="{{h.hasLabel}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; left: {{h.xp}}%; bottom: calc({{h.yp}}% + 12px); transform: translateX({{h.lshift}}); font: 500 11px 'IBM Plex Mono', monospace; color: {{h.lc}}; background: rgba(255,255,255,.9); padding: 0 4px; border-radius: 3px; white-space: nowrap; pointer-events: none; z-index: 1">{{h.label}}</div>
+</sc-if>
+</sc-for>
+<div style="position: absolute; top: calc(100% + 32px); left: 0; font-size: 11px; color: #6B7280">{{rawNote}}</div>
+<div style="position: absolute; top: calc(100% + 50px); left: 0; right: 0; text-align: center; font-size: 12px; font-weight: 600; color: #14181F">{{xAxisTitle}}</div>
+<div style="position: absolute; top: 0; bottom: 0; right: calc(100% + {{g.titleGap}}px); display: flex; align-items: center; justify-content: center">
+<span style="writing-mode: vertical-rl; transform: rotate(180deg); font-size: 12px; font-weight: 600; color: #14181F; white-space: nowrap">{{yAxisTitle}}</span>
+</div>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+<label for="probe" style="font-size: 12px; font-weight: 500; color: #4A5160; flex: none">Evaluate at</label>
+<input id="probe" type="range" min="{{xmin}}" max="{{xmax}}" step="{{probeStep}}" value="{{probe.x}}" onChange="{{on.probe}}" style="flex: 1 1 240px; min-width: 0; accent-color: #B45309; height: 28px">
+<output for="probe" style="font: 500 14px 'IBM Plex Mono', monospace; color: {{probe.color}}; flex: none; min-width: 220px; text-align: right">{{probe.readout}}</output>
+</div>
+</section>
+</div>
+
+<!-- Row 3: clamp + provenance -->
+<div class="two-col">
+<section class="card">
+<div class="sec-head"><h2 class="sec-h">Final clamp</h2><p class="sec-sub">Applied once, after the model and its thresholds. Leave both empty for no clamp.</p></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{clampFields}}" as="f" hint-placeholder-count="2">
+<div class="fld"><label for="{{f.id}}">{{f.label}} <span class="sdk">{{f.sdk}}</span></label>
+<div class="affix" style="border-color: {{f.border}}">
+<sc-if value="{{f.hasPrefix}}" hint-placeholder-val="{{false}}"><span class="affix-pre">{{f.prefix}}</span></sc-if>
+<input id="{{f.id}}" class="affix-inp" type="text" inputmode="decimal" placeholder="{{f.placeholder}}" value="{{f.value}}" onChange="{{f.onChange}}" onBlur="{{f.onBlur}}" onKeyDown="{{f.onKeyDown}}">
+<sc-if value="{{f.hasSuffix}}" hint-placeholder-val="{{false}}"><span class="affix-suf">{{f.suffix}}</span></sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" class="btn" onClick="{{clampUnit}}">0 to 1</button>
+<button type="button" class="btn" onClick="{{clampNone}}">No clamp</button>
+</div>
+<div class="formula">clamp: {{clampText}}</div>
+</section>
+
+<section class="card">
+<div class="sec-head"><h2 class="sec-h">Provenance</h2><p class="sec-sub">Audit only: never changes evaluation, always changes the definition's identity.</p></div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span class="lbl">Origin of the coefficients <span class="sdk">provenance.origin.kind</span></span>
+<div role="group" aria-label="Origin" class="seg" style="align-self: flex-start">
+<sc-for list="{{origins}}" as="o" hint-placeholder-count="4">
+<button type="button" class="seg-btn" aria-pressed="{{o.pressed}}" onClick="{{o.pick}}" style="background: {{o.bg}}; color: {{o.fg}}">{{o.label}}</button>
+</sc-for>
+</div>
+<p class="hint">{{originHint}}</p>
+</div>
+
+<sc-if value="{{needsSource}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span class="lbl">Cited source <span class="sdk">origin.source_id</span></span>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{sourcePicks}}" as="p" hint-placeholder-count="1">
+<button type="button" class="btn" aria-pressed="{{p.pressed}}" onClick="{{p.pick}}" style="background: {{p.bg}}; border-color: {{p.border}}">{{p.label}}</button>
+</sc-for>
+</div>
+<sc-if value="{{noSources}}" hint-placeholder-val="{{false}}"><p class="hint" style="color: #B91C1C">Add a source below, then pick it here.</p></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isImported}}" hint-placeholder-val="{{false}}">
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+<div class="fld"><label for="im-n">Importer <span class="sdk">importer_name</span></label><input id="im-n" class="inp" type="text" value="{{prov.importer_name}}" onChange="{{on.importer_name}}" style="border-color: {{err.importer_name}}"></div>
+<div class="fld"><label for="im-v">Version <span class="sdk">importer_version</span></label><input id="im-v" class="inp" type="text" value="{{prov.importer_version}}" onChange="{{on.importer_version}}" style="border-color: {{err.importer_version}}"></div>
+<div class="fld"><label for="im-s">Build SHA-256 <span class="sdk">optional</span></label><input id="im-s" class="inp" type="text" placeholder="64 hex characters" value="{{prov.importer_sha}}" onChange="{{on.importer_sha}}" style="border-color: {{err.importer_sha}}"></div>
+</div>
+</sc-if>
+
+<sc-if value="{{isDerived}}" hint-placeholder-val="{{false}}">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div class="fld"><label for="dv-d">How it was derived <span class="sdk">origin.description</span></label><textarea id="dv-d" class="inp txt" value="{{prov.description}}" onChange="{{on.description}}" style="border-color: {{err.description}}"></textarea></div>
+<div class="fld"><label for="dv-p">Parent definitions, one per line <span class="sdk">derived_from</span></label><textarea id="dv-p" class="inp" placeholder="sha256:…" value="{{prov.derived}}" onChange="{{on.derived}}" style="border-color: {{err.derived}}"></textarea></div>
+</div>
+</sc-if>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span class="lbl">Sources <span class="sdk">provenance.sources</span></span>
+<sc-for list="{{sourceRows}}" as="r" hint-placeholder-count="1">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr) 40px; gap: 8px; padding: 10px; border: 1px solid #ECEEEA; border-radius: 8px">
+<input class="inp" type="text" aria-label="{{r.idAria}}" placeholder="id" value="{{r.id}}" onChange="{{r.onId}}" style="border-color: {{r.idBorder}}">
+<select class="inp txt" aria-label="{{r.kindAria}}" value="{{r.kind}}" onChange="{{r.onKind}}">
+<option value="publication">Publication</option>
+<option value="dataset">Dataset</option>
+<option value="code">Code</option>
+<option value="definition">Definition</option>
+</select>
+<input class="inp" type="text" aria-label="{{r.uriAria}}" placeholder="URI" value="{{r.uri}}" onChange="{{r.onUri}}" style="border-color: {{r.uriBorder}}">
+<button type="button" class="btn icon-btn" aria-label="{{r.removeAria}}" onClick="{{r.remove}}">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+</button>
+<input class="inp" type="text" aria-label="{{r.revAria}}" placeholder="Revision (optional)" value="{{r.revision}}" onChange="{{r.onRev}}" style="grid-column: 1 / 3">
+<input class="inp" type="text" aria-label="{{r.shaAria}}" placeholder="Content SHA-256 (optional)" value="{{r.sha}}" onChange="{{r.onSha}}" style="grid-column: 3 / 5; border-color: {{r.shaBorder}}">
+</div>
+</sc-for>
+<button type="button" class="btn" onClick="{{addSource}}" style="align-self: flex-start">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+Add source
+</button>
+</div>
+</section>
+</div>
+
+<!-- Row 4: export -->
+<section style="background: #14181F; color: #E7E9EC; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+<h2 class="sec-h" style="color: #FFFFFF">Export</h2>
+<div role="tablist" aria-label="Export format" style="display: flex; flex-wrap: wrap; gap: 4px">
+<sc-for list="{{exportTabs}}" as="t" hint-placeholder-count="4">
+<button type="button" role="tab" aria-selected="{{t.selected}}" onClick="{{t.pick}}" style="font: 500 13px 'IBM Plex Sans', sans-serif; min-height: 40px; padding: 0 14px; border-radius: 6px; cursor: pointer; border: 1px solid {{t.border}}; background: {{t.bg}}; color: {{t.fg}}">{{t.label}}</button>
+</sc-for>
+</div>
+</div>
+<button type="button" onClick="{{copyExport}}" style="font: 500 13px 'IBM Plex Sans', sans-serif; min-height: 40px; padding: 0 14px; border-radius: 6px; cursor: pointer; border: 1px solid #3A414D; background: #232933; color: #E7E9EC; display: inline-flex; align-items: center; gap: 8px">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V6a2 2 0 0 1 2-2h9"></path></svg>
+{{copyLabel}}
+</button>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font: 400 13px 'IBM Plex Mono', monospace">
+<span style="color: #A9AFB9">definition_hash</span>
+<span style="color: {{hashColor}}; overflow-wrap: anywhere">{{hashText}}</span>
+</div>
+<sc-if value="{{hasErrors}}" hint-placeholder-val="{{false}}">
+<ul style="list-style: none; margin: 0; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; background: #2A1416; border: 1px solid #5B2328; border-radius: 8px">
+<sc-for list="{{errors}}" as="e" hint-placeholder-count="1">
+<li style="font-size: 13px; color: #FCA5A5"><span style="font-family: 'IBM Plex Mono', monospace; font-weight: 500">{{e.code}}</span> <span style="font-family: 'IBM Plex Mono', monospace; color: #E7A3A3">{{e.path}}</span> — {{e.msg}}</li>
+</sc-for>
+</ul>
+</sc-if>
+<div style="overflow-x: auto; background: #0D1015; border: 1px solid #2A303A; border-radius: 8px; padding: 16px">
+<pre style="font: 400 13px/1.6 'IBM Plex Mono', monospace; color: #E7E9EC; white-space: pre">{{exportText}}</pre>
+</div>
+<p style="margin: 0; font-size: 12px; color: #A9AFB9">{{exportNote}}</p>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#1D4ED8","options":["#1D4ED8","#0F766E","#7C3AED","#14181F"]},"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  // ---------- presets ----------
+  hazards() {
+    return {
+      flood: { variable: 'flood_depth', unit: 'm', domain: [0, 5],
+        starter: { kind: 'tabulated', points: [[0, 0], [0.3, 0.08], [1, 0.45], [2, 1]], interpolation: 'linear', outside_domain: 'clamp' }, clamp: [0, 1] },
+      wind: { variable: 'wind_speed', unit: 'm/s', domain: [0, 90],
+        starter: { kind: 'sigmoid', midpoint: 55, steepness: 0.15, offset: 0, amplitude: 1, origin_adjustment: 'none', zero_below: 25 }, clamp: null },
+      rx1day: { variable: 'rx1day', unit: 'mm', domain: [0, 300],
+        starter: { kind: 'tabulated', points: [[0, 0], [50, 0], [100, 0.03], [200, 0.12], [300, 0.25]], interpolation: 'linear', outside_domain: 'clamp' }, clamp: [0, 1] },
+      mcdd: { variable: 'maximum_consecutive_dry_days', unit: 'd', domain: [0, 120],
+        starter: { kind: 'linear', slope: 0.008, intercept: -0.12 }, clamp: [0, 0.6] },
+      hot: { variable: 'hot_days', unit: 'd', domain: [0, 200],
+        starter: { kind: 'linear', slope: 0.002, intercept: 0 }, clamp: [0, 0.4] },
+      frost: { variable: 'frost_days', unit: 'd', domain: [0, 250],
+        starter: { kind: 'binned', bin_edges: [0, 50, 100, 150, 250], values: [0, 0.02, 0.06, 0.12], outside_domain: 'clamp' }, clamp: null },
+      cdd: { variable: 'cooling_degree_days', unit: 'K.d', domain: [0, 3000],
+        starter: { kind: 'linear', slope: 0.0001, intercept: 0 }, clamp: [0, 0.3] },
+      tnn: { variable: 'tnn', unit: 'degC', domain: [-45, 10],
+        starter: { kind: 'tabulated', points: [[-40, 0.3], [-25, 0.15], [-10, 0.02], [0, 0]], interpolation: 'linear', outside_domain: 'clamp' }, clamp: [0, 1] },
+      custom: { variable: 'value', unit: '1', domain: [0, 10],
+        starter: { kind: 'tabulated', points: [[0, 0], [5, 0.5], [10, 1]], interpolation: 'linear', outside_domain: 'clamp' }, clamp: null }
+    };
+  }
+
+  impacts() {
+    return {
+      damage_ratio: { metric: 'damage_ratio', unit: '1', decimals: 2, step: 0.01 },
+      damage_percent: { metric: 'damage_percent', unit: '%', decimals: 1, step: 0.1 },
+      loss: { metric: 'loss', unit: 'USD', decimals: 2, step: 1000, currency: true },
+      downtime: { metric: 'downtime', unit: 'd', decimals: 1, step: 0.5 },
+      crop_yield_change: { metric: 'crop_yield_change', unit: '1', decimals: 3, step: 0.01 },
+      score: { metric: 'score', unit: '1', decimals: 2, step: 0.1 },
+      custom: { metric: 'response', unit: '1', decimals: 3, step: 0.01 }
+    };
+  }
+
+  // ---------- state ----------
+  defaults() {
+    const base = {
+      cal: { preset: 'flood', exposure_variable: 'flood_depth', exposure_unit: 'm', impactPreset: 'damage_ratio', impact_metric: 'damage_ratio', impact_unit: '1' },
+      xMin: '0', xMax: '5', probe: 1,
+      prov: { origin: 'user_defined', source_id: '', importer_name: '', importer_version: '', importer_sha: '', description: '', derived: '', sources: [] },
+      exportTab: 'definition', copied: false, editOn: true
+    };
+    return Object.assign(base, this.seedModels('flood', 'damage_ratio'));
+  }
+
+  st() {
+    return Object.assign(this.defaults(), this.state || {});
+  }
+
+  // Seed every model kind from a hazard's starter so switching kinds keeps a comparable curve.
+  seedModels(presetId, impactPreset) {
+    const h = this.hazards()[presetId] || this.hazards().custom;
+    const ip = this.impacts()[impactPreset] || this.impacts().damage_ratio;
+    const sm = h.starter;
+    const [a, b] = h.domain, span = b - a;
+    const numModel = sm.kind === 'tabulated' ? Object.assign({}, sm, { points: sm.points.map(([x, y]) => ({ x, y })) }) : sm;
+    const f = (x) => this.evalModel(numModel, x);
+    const fi = (v) => this.fmtImpactNum(v, ip);
+    const xs = [0, 1, 2, 3, 4].map((i) => this.round6(a + span * i / 4));
+    const tab = sm.kind === 'tabulated'
+      ? { interpolation: sm.interpolation, outside: sm.outside_domain, points: sm.points.map(([x, y]) => ({ x: this.plain(x), y: fi(y) })) }
+      : { interpolation: 'linear', outside: 'clamp', points: xs.map((x) => ({ x: this.plain(x), y: fi(f(x)) })) };
+    const bin = sm.kind === 'binned'
+      ? { outside: sm.outside_domain, edges: sm.bin_edges.map((x) => this.plain(x)), values: sm.values.map(fi) }
+      : { outside: 'clamp', edges: xs.map((x) => this.plain(x)), values: xs.slice(0, 4).map((x, i) => fi(f((x + xs[i + 1]) / 2))) };
+    const lo = f(a), hi = f(b);
+    const sig = sm.kind === 'sigmoid'
+      ? { midpoint: this.plain(sm.midpoint), steepness: this.plain(sm.steepness), offset: fi(sm.offset), amplitude: fi(sm.amplitude), origin: sm.origin_adjustment, zero_below: sm.zero_below === null ? '' : this.plain(sm.zero_below) }
+      : { midpoint: this.plain(this.round6(a + span / 2)), steepness: this.plain(this.round6((hi >= lo ? 8 : -8) / span)), offset: fi(Math.min(lo, hi)), amplitude: fi(Math.abs(hi - lo)), origin: 'none', zero_below: '' };
+    const slope = (hi - lo) / span;
+    const lin = sm.kind === 'linear'
+      ? { slope: this.plain(sm.slope), intercept: fi(sm.intercept) }
+      : { slope: this.plain(this.round6(slope)), intercept: fi(this.round6(lo - slope * a)) };
+    const clamp = h.clamp ? { minimum: fi(h.clamp[0]), maximum: fi(h.clamp[1]) } : { minimum: '', maximum: '' };
+    return { kind: sm.kind, tab, bin, sig, lin, clamp };
+  }
+
+  // ---------- numbers ----------
+  num(s) {
+    if (s === null || s === undefined) return NaN;
+    const t = String(s).replace(/[^0-9eE+\-.]/g, '');
+    if (t === '' || t === '-' || t === '.' || t === '+') return NaN;
+    const v = Number(t);
+    return Number.isFinite(v) ? v : NaN;
+  }
+
+  blank(s) { return String(s ?? '').trim() === ''; }
+
+  round6(v) { return Math.round(v * 1e6) / 1e6; }
+
+  plain(v) { return Number.isFinite(v) ? String(this.round6(v)) : ''; }
+
+  fmt(v, d) {
+    if (!Number.isFinite(v)) return '—';
+    const s = v.toFixed(d === undefined ? 3 : d);
+    const t = s.indexOf('.') >= 0 ? s.replace(/0+$/, '').replace(/\.$/, '') : s;
+    return t === '-0' ? '0' : t;
+  }
+
+  niceStep(range) {
+    const raw = range / 6;
+    const p = Math.pow(10, Math.floor(Math.log10(raw)));
+    const m = raw / p;
+    return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p;
+  }
+
+  // ---------- impact unit presentation ----------
+  impactFmt(cal) {
+    const base = this.impacts()[cal.impactPreset] || this.impacts().custom;
+    const unit = String(cal.impact_unit || '');
+    const symbols = { USD: '$', CAD: 'C$', AUD: 'A$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'CHF ' };
+    let prefix = '', suffix = '';
+    if (base.currency) {
+      const m = unit.match(/^([A-Z]{3})(.*)$/);
+      prefix = m ? (symbols[m[1]] || m[1] + ' ') : '';
+      suffix = m ? m[2] : unit;
+    } else if (unit === '%') suffix = '%';
+    else if (unit === 'd') suffix = 'days';
+    else if (unit !== '1') suffix = unit;
+    if (cal.impactPreset === 'score') suffix = 'pts';
+    return Object.assign({}, base, { prefix, suffix });
+  }
+
+  fmtImpactNum(v, u) {
+    if (!Number.isFinite(v)) return '';
+    if (u.currency) return v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    return v.toFixed(u.decimals);
+  }
+
+  impactTick(v, u) {
+    if (!Number.isFinite(v)) return '—';
+    if (u.currency) {
+      const a = Math.abs(v);
+      return (u.prefix || '') + (a >= 1e9 ? this.fmt(v / 1e9, 2) + 'B' : a >= 1e6 ? this.fmt(v / 1e6, 2) + 'M' : a >= 1e3 ? this.fmt(v / 1e3, 1) + 'k' : this.fmt(v, 2)) + (u.suffix || '');
+    }
+    if (u.unit === '%' || u.suffix === '%') return this.fmt(v, 1) + '%';
+    if (u.suffix === 'days') return this.fmt(v, 1) + ' d';
+    return this.fmt(v, 3);
+  }
+
+  // ---------- crc-impact/1 evaluation ----------
+  logistic(z) {
+    if (z >= 0) return 1 / (1 + Math.exp(-z));
+    const e = Math.exp(z);
+    return e / (1 + e);
+  }
+
+  // Raw model response; NaN means out_of_domain.
+  evalModel(m, x) {
+    if (m.kind === 'linear') return m.slope * x + (m.intercept ?? 0);
+    if (m.kind === 'sigmoid') {
+      if (m.zero_below !== null && m.zero_below !== undefined && x < m.zero_below) return 0;
+      const k = m.steepness, off = m.offset ?? 0, amp = m.amplitude ?? 1;
+      const L = (z) => (k === 0 ? 0.5 : this.logistic(z));
+      let u = L(k * (x - m.midpoint));
+      if (m.origin_adjustment === 'subtract_at_zero') u -= L(-k * m.midpoint);
+      return off + amp * u;
+    }
+    if (m.kind === 'tabulated') {
+      const p = m.points, n = p.length;
+      if (x < p[0].x || x > p[n - 1].x) {
+        if (m.outside_domain === 'error') return NaN;
+        return x < p[0].x ? p[0].y : p[n - 1].y;
+      }
+      for (let i = 0; i < n; i++) if (x === p[i].x) return p[i].y;
+      for (let i = 0; i < n - 1; i++) {
+        if (x > p[i].x && x < p[i + 1].x) {
+          if (m.interpolation === 'step_left') return p[i].y;
+          if (m.interpolation === 'step_right') return p[i + 1].y;
+          return p[i].y + (p[i + 1].y - p[i].y) * ((x - p[i].x) / (p[i + 1].x - p[i].x));
+        }
+      }
+      return p[n - 1].y;
+    }
+    if (m.kind === 'binned') {
+      const e = m.bin_edges, v = m.values, n = e.length;
+      if (x < e[0] || x > e[n - 1]) {
+        if (m.outside_domain === 'error') return NaN;
+        return x < e[0] ? v[0] : v[v.length - 1];
+      }
+      for (let i = 0; i < n - 1; i++) if (x >= e[i] && x < e[i + 1]) return v[i];
+      return v[v.length - 1];
+    }
+    return NaN;
+  }
+
+  // Final response; NaN for out_of_domain or a non-finite raw result (checked before the clamp).
+  evalDef(d, x) {
+    let y = this.evalModel(d.model, x);
+    if (!Number.isFinite(y)) return NaN;
+    if (d.clamp) {
+      if (d.clamp.minimum !== null) y = Math.max(d.clamp.minimum, y);
+      if (d.clamp.maximum !== null) y = Math.min(d.clamp.maximum, y);
+    }
+    return y;
+  }
+
+  // ---------- definition + contract validation ----------
+  buildDefinition(s) {
+    const errors = [];
+    const E = (code, path, msg) => errors.push({ code, path, msg });
+    const ident = (v, path, label) => {
+      const t = String(v ?? '');
+      if (t === '') E('invalid_value', path, label + ' must not be empty.');
+      else if (t !== t.trim()) E('invalid_value', path, label + ' must not start or end with whitespace.');
+      return t;
+    };
+    const req = (raw, path, label) => {
+      if (this.blank(raw)) { E('missing_field', path, label + ' is required.'); return NaN; }
+      const v = this.num(raw);
+      if (!Number.isFinite(v)) E('invalid_type', path, label + ' must be a finite number.');
+      return v;
+    };
+    const optn = (raw, path, label) => (this.blank(raw) ? null : req(raw, path, label));
+
+    const c = s.cal;
+    const calibration = {
+      exposure_variable: ident(c.exposure_variable, '/calibration/exposure_variable', 'Exposure variable'),
+      exposure_unit: ident(c.exposure_unit, '/calibration/exposure_unit', 'Exposure unit'),
+      impact_metric: ident(c.impact_metric, '/calibration/impact_metric', 'Impact metric'),
+      impact_unit: ident(c.impact_unit, '/calibration/impact_unit', 'Impact unit')
+    };
+
+    let model;
+    if (s.kind === 'linear') {
+      model = { kind: 'linear', slope: req(s.lin.slope, '/model/slope', 'Slope'), intercept: this.blank(s.lin.intercept) ? 0 : req(s.lin.intercept, '/model/intercept', 'Intercept') };
+    } else if (s.kind === 'sigmoid') {
+      const g = s.sig;
+      model = {
+        kind: 'sigmoid',
+        midpoint: req(g.midpoint, '/model/midpoint', 'Midpoint'),
+        steepness: req(g.steepness, '/model/steepness', 'Steepness'),
+        offset: this.blank(g.offset) ? 0 : req(g.offset, '/model/offset', 'Offset'),
+        amplitude: this.blank(g.amplitude) ? 1 : req(g.amplitude, '/model/amplitude', 'Amplitude'),
+        origin_adjustment: g.origin === 'subtract_at_zero' ? 'subtract_at_zero' : 'none',
+        zero_below: optn(g.zero_below, '/model/zero_below', 'Zero below')
+      };
+      if (Number.isFinite(model.amplitude) && model.amplitude < 0) E('invalid_value', '/model/amplitude', 'Amplitude must be zero or more; use a negative steepness for a falling curve.');
+    } else if (s.kind === 'tabulated') {
+      const pts = s.tab.points.map((p, i) => ({ x: req(p.x, '/model/points/' + i + '/x', 'Knot ' + (i + 1) + ' x'), y: req(p.y, '/model/points/' + i + '/y', 'Knot ' + (i + 1) + ' y') }));
+      if (pts.length < 2) E('invalid_value', '/model/points', 'A table needs at least two knots.');
+      for (let i = 1; i < pts.length; i++) {
+        if (Number.isFinite(pts[i].x) && Number.isFinite(pts[i - 1].x) && !(pts[i].x > pts[i - 1].x)) E('invalid_value', '/model/points/' + i + '/x', 'Knot x values must strictly increase.');
+      }
+      model = { kind: 'tabulated', points: pts, interpolation: s.tab.interpolation, outside_domain: s.tab.outside };
+    } else {
+      const edges = s.bin.edges.map((v, i) => req(v, '/model/bin_edges/' + i, 'Edge ' + (i + 1)));
+      const values = s.bin.values.map((v, i) => req(v, '/model/values/' + i, 'Bin ' + (i + 1) + ' value'));
+      if (edges.length < 2) E('invalid_value', '/model/bin_edges', 'Binned models need at least two edges.');
+      for (let i = 1; i < edges.length; i++) {
+        if (Number.isFinite(edges[i]) && Number.isFinite(edges[i - 1]) && !(edges[i] > edges[i - 1])) E('invalid_value', '/model/bin_edges/' + i, 'Bin edges must strictly increase.');
+      }
+      model = { kind: 'binned', bin_edges: edges, values, outside_domain: s.bin.outside };
+    }
+
+    const cmin = optn(s.clamp.minimum, '/clamp/minimum', 'Clamp minimum');
+    const cmax = optn(s.clamp.maximum, '/clamp/maximum', 'Clamp maximum');
+    if (cmin !== null && cmax !== null && Number.isFinite(cmin) && Number.isFinite(cmax) && cmin > cmax) E('invalid_value', '/clamp', 'Minimum must not exceed maximum.');
+    const clamp = cmin === null && cmax === null ? null : { minimum: cmin, maximum: cmax };
+
+    const p = s.prov;
+    const hexRe = /^[0-9a-f]{64}$/;
+    const ids = {};
+    const sources = p.sources.map((src, i) => {
+      const id = ident(src.id, '/provenance/sources/' + i + '/id', 'Source id');
+      if (id && ids[id]) E('duplicate_identifier', '/provenance/sources/' + i + '/id', 'Source ids must be unique.');
+      ids[id] = true;
+      const uri = ident(src.uri, '/provenance/sources/' + i + '/uri', 'Source URI');
+      const sha = String(src.sha || '').trim();
+      if (sha && !hexRe.test(sha)) E('invalid_value', '/provenance/sources/' + i + '/content_sha256', 'Content digest must be 64 lowercase hex characters.');
+      return { id, kind: src.kind, uri, revision: this.blank(src.revision) ? null : String(src.revision).trim(), content_sha256: sha || null };
+    });
+    let origin = { kind: p.origin };
+    if (p.origin === 'published' || p.origin === 'imported') {
+      origin.source_id = p.source_id;
+      if (!p.source_id || !ids[p.source_id]) E('invalid_reference', '/provenance/origin/source_id', 'Pick a source record from this definition.');
+    }
+    if (p.origin === 'imported') {
+      origin.importer_name = ident(p.importer_name, '/provenance/origin/importer_name', 'Importer name');
+      origin.importer_version = ident(p.importer_version, '/provenance/origin/importer_version', 'Importer version');
+      const bs = String(p.importer_sha || '').trim();
+      if (bs && !hexRe.test(bs)) E('invalid_value', '/provenance/origin/importer_build_sha256', 'Build digest must be 64 lowercase hex characters.');
+      origin.importer_build_sha256 = bs || null;
+    }
+    const derived_from = [];
+    if (p.origin === 'derived') {
+      if (this.blank(p.description)) E('missing_field', '/provenance/origin/description', 'Describe the derivation.');
+      origin.description = String(p.description || '').trim();
+      String(p.derived || '').split(/\s+/).filter(Boolean).forEach((h, i) => {
+        if (!/^sha256:[0-9a-f]{64}$/.test(h)) E('invalid_value', '/provenance/derived_from/' + i, 'Parents are sha256: followed by 64 lowercase hex characters.');
+        else if (derived_from.indexOf(h) >= 0) E('duplicate_identifier', '/provenance/derived_from/' + i, 'Each parent is listed once.');
+        derived_from.push(h);
+      });
+      if (!derived_from.length) E('invalid_reference', '/provenance/derived_from', 'A derived definition needs at least one parent hash.');
+    }
+
+    const definition = {
+      schema_version: '1.0',
+      semantics_version: 'crc-impact/1',
+      calibration, model, clamp,
+      provenance: { origin, sources, derived_from }
+    };
+    return { definition, errors };
+  }
+
+  // ---------- crc-canonical-json/1 ----------
+  canonNum(v) {
+    if (v === 0) return '0.0';
+    const exp = v.toExponential();
+    const m = exp.match(/^(-?)(\d)(?:\.(\d+))?e([+-]\d+)$/);
+    const sign = m[1], digits = m[2] + (m[3] || ''), e = parseInt(m[4], 10);
+    if (e >= -5 && e < 16) {
+      let intPart, frac;
+      if (e >= 0) {
+        const padded = digits.length <= e + 1 ? digits + '0'.repeat(e + 1 - digits.length) : digits;
+        intPart = padded.slice(0, e + 1);
+        frac = padded.slice(e + 1);
+      } else {
+        intPart = '0';
+        frac = '0'.repeat(-e - 1) + digits;
+      }
+      return sign + intPart + '.' + (frac === '' ? '0' : frac);
+    }
+    const mant = m[2] + (m[3] ? '.' + m[3] : '');
+    return sign + mant + 'e' + (e > 0 ? '+' : '-') + Math.abs(e);
+  }
+
+  canon(v) {
+    if (v === null) return 'null';
+    if (typeof v === 'number') return this.canonNum(v);
+    if (typeof v === 'string') return JSON.stringify(v);
+    if (typeof v === 'boolean') return v ? 'true' : 'false';
+    if (Array.isArray(v)) return '[' + v.map((x) => this.canon(x)).join(',') + ']';
+    const keys = Object.keys(v).sort();
+    return '{' + keys.map((k) => JSON.stringify(k) + ':' + this.canon(v[k])).join(',') + '}';
+  }
+
+  pretty(v, ind) {
+    const pad = ind || '';
+    const next = pad + '  ';
+    if (v === null || typeof v !== 'object') return this.canon(v);
+    if (Array.isArray(v)) {
+      if (!v.length) return '[]';
+      if (v.every((x) => x === null || typeof x !== 'object')) return '[' + v.map((x) => this.canon(x)).join(', ') + ']';
+      return '[\n' + v.map((x) => next + this.pretty(x, next)).join(',\n') + '\n' + pad + ']';
+    }
+    const keys = Object.keys(v);
+    if (!keys.length) return '{}';
+    if (keys.every((k) => v[k] === null || typeof v[k] !== 'object') && keys.length <= 2) return '{ ' + keys.map((k) => JSON.stringify(k) + ': ' + this.canon(v[k])).join(', ') + ' }';
+    return '{\n' + keys.map((k) => next + JSON.stringify(k) + ': ' + this.pretty(v[k], next)).join(',\n') + '\n' + pad + '}';
+  }
+
+  utf8(str) {
+    const out = [];
+    for (let i = 0; i < str.length; i++) {
+      let c = str.charCodeAt(i);
+      if (c >= 0xd800 && c <= 0xdbff && i + 1 < str.length) {
+        const d = str.charCodeAt(i + 1);
+        if (d >= 0xdc00 && d <= 0xdfff) { c = 0x10000 + ((c - 0xd800) << 10) + (d - 0xdc00); i++; }
+      }
+      if (c < 0x80) out.push(c);
+      else if (c < 0x800) out.push(0xc0 | (c >> 6), 0x80 | (c & 63));
+      else if (c < 0x10000) out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+      else out.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    }
+    return out;
+  }
+
+  sha256(bytes) {
+    const K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
+    const H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+    const msg = bytes.slice();
+    const bitLen = bytes.length * 8;
+    msg.push(0x80);
+    while (msg.length % 64 !== 56) msg.push(0);
+    const hi = Math.floor(bitLen / 0x100000000), lo = bitLen >>> 0;
+    msg.push((hi >>> 24) & 255, (hi >>> 16) & 255, (hi >>> 8) & 255, hi & 255, (lo >>> 24) & 255, (lo >>> 16) & 255, (lo >>> 8) & 255, lo & 255);
+    const W = new Array(64);
+    const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+    for (let off = 0; off < msg.length; off += 64) {
+      for (let t = 0; t < 16; t++) W[t] = (msg[off + 4 * t] << 24) | (msg[off + 4 * t + 1] << 16) | (msg[off + 4 * t + 2] << 8) | msg[off + 4 * t + 3];
+      for (let t = 16; t < 64; t++) {
+        const s0 = rotr(W[t - 15], 7) ^ rotr(W[t - 15], 18) ^ (W[t - 15] >>> 3);
+        const s1 = rotr(W[t - 2], 17) ^ rotr(W[t - 2], 19) ^ (W[t - 2] >>> 10);
+        W[t] = (W[t - 16] + s0 + W[t - 7] + s1) | 0;
+      }
+      let [a, b, c, d, e, f, g, h] = H;
+      for (let t = 0; t < 64; t++) {
+        const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+        const ch = (e & f) ^ (~e & g);
+        const t1 = (h + S1 + ch + K[t] + W[t]) | 0;
+        const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+        const maj = (a & b) ^ (a & c) ^ (b & c);
+        const t2 = (S0 + maj) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+      H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+    }
+    return H.map((x) => ('00000000' + (x >>> 0).toString(16)).slice(-8)).join('');
+  }
+
+  definitionHash(def) {
+    return 'sha256:' + this.sha256(this.utf8(this.canon(def)));
+  }
+
+  // ---------- render ----------
+  renderVals() {
+    const s = this.st();
+    const accent = this.props.accent ?? '#1D4ED8';
+    const mut = (fn) => { const c = JSON.parse(JSON.stringify(this.st())); fn(c); c.copied = false; this.setState(c); };
+    const u = this.impactFmt(s.cal);
+    const { definition: def, errors } = this.buildDefinition(s);
+    const errPaths = {};
+    errors.forEach((e) => { errPaths[e.path] = true; });
+    const bad = (path) => (errPaths[path] ? '#B91C1C' : '#C9CDD4');
+    const valid = errors.length === 0;
+    const xu = s.cal.exposure_unit || '';
+
+    // Model usable for plotting even while other parts of the definition are invalid.
+    const m = def.model;
+    let plotModel = null;
+    if (m.kind === 'tabulated') {
+      const ok = m.points.length >= 2 && m.points.every((p, i) => Number.isFinite(p.x) && Number.isFinite(p.y) && (i === 0 || p.x > m.points[i - 1].x));
+      plotModel = ok ? m : null;
+    } else if (m.kind === 'binned') {
+      const ok = m.bin_edges.length >= 2 && m.bin_edges.every((x, i) => Number.isFinite(x) && (i === 0 || x > m.bin_edges[i - 1])) && m.values.every(Number.isFinite);
+      plotModel = ok ? m : null;
+    } else if (m.kind === 'sigmoid') {
+      plotModel = [m.midpoint, m.steepness, m.offset, m.amplitude].every(Number.isFinite) && (m.zero_below === null || Number.isFinite(m.zero_below)) ? m : null;
+    } else {
+      plotModel = Number.isFinite(m.slope) && Number.isFinite(m.intercept) ? m : null;
+    }
+    const plotClamp = def.clamp && (def.clamp.minimum === null || Number.isFinite(def.clamp.minimum)) && (def.clamp.maximum === null || Number.isFinite(def.clamp.maximum)) ? def.clamp : null;
+    const plotDef = { model: plotModel, clamp: plotClamp };
+    const fFinal = (x) => (plotModel ? this.evalDef(plotDef, x) : NaN);
+    const fRaw = (x) => (plotModel ? this.evalModel(plotModel, x) : NaN);
+
+    // Domain
+    let xmin = this.num(s.xMin), xmax = this.num(s.xMax);
+    const hz = this.hazards()[s.cal.preset] || this.hazards().custom;
+    if (!Number.isFinite(xmin)) xmin = hz.domain[0];
+    if (!Number.isFinite(xmax)) xmax = hz.domain[1];
+    const breaks = plotModel && plotModel.kind === 'tabulated' ? plotModel.points.map((p) => p.x) : plotModel && plotModel.kind === 'binned' ? plotModel.bin_edges.slice() : [];
+    if (plotModel && plotModel.kind === 'sigmoid' && plotModel.zero_below !== null) breaks.push(plotModel.zero_below);
+    if (breaks.length && (plotModel.kind === 'tabulated' || plotModel.kind === 'binned')) {
+      xmin = Math.min(xmin, breaks[0]);
+      xmax = Math.max(xmax, breaks[breaks.length - 1]);
+    }
+    if (!(xmax > xmin)) xmax = xmin + 1;
+    // While a handle is dragged the axes stay frozen so the scale doesn't move under the pointer.
+    if (this.drag) { xmin = this.drag.xmin; xmax = this.drag.xmax; }
+    const span = xmax - xmin;
+
+    // Samples, with exact breakpoints so steps and thresholds draw as vertical jumps.
+    const xsSet = [];
+    for (let i = 0; i <= 400; i++) xsSet.push(xmin + span * i / 400);
+    const eps = span * 1e-7;
+    breaks.forEach((b) => { if (b >= xmin && b <= xmax) xsSet.push(b - eps, b, b + eps); });
+    const xs = xsSet.filter((x) => x >= xmin && x <= xmax).sort((a, b) => a - b);
+    const fin = xs.map((x) => ({ x, y: fFinal(x) }));
+    const raw = xs.map((x) => ({ x, y: fRaw(x) }));
+    const clampBinds = !!plotClamp && raw.some((p, i) => Number.isFinite(p.y) && Math.abs(p.y - fin[i].y) > 1e-12);
+    const ys = fin.concat(clampBinds ? raw : []).map((p) => p.y).filter(Number.isFinite);
+    if (plotClamp) ['minimum', 'maximum'].forEach((k) => { if (plotClamp[k] !== null) ys.push(plotClamp[k]); });
+    let yLo = Math.min(0, ...ys), yHi = Math.max(0, ...ys);
+    if (s.cal.impactPreset === 'damage_ratio') yHi = Math.max(yHi, 1);
+    if (yHi <= yLo) yHi = yLo + 1;
+    const yStep = this.niceStep(yHi - yLo);
+    yHi = Math.ceil(yHi / yStep - 1e-9) * yStep;
+    let yMin = Math.floor(yLo / yStep + 1e-9) * yStep;
+    if (this.drag) { yMin = this.drag.yMin; yHi = this.drag.yHi; }
+
+    const xp = (x) => ((x - xmin) / span) * 100;
+    const yp = (y) => ((y - yMin) / (yHi - yMin)) * 100;
+    const r1 = (v) => Math.round(v * 10) / 10;
+    const r2 = (v) => Math.round(v * 100) / 100;
+    const toPath = (pts) => {
+      let d = '', pen = false;
+      pts.forEach((p) => {
+        if (!Number.isFinite(p.y)) { pen = false; return; }
+        d += (pen ? 'L' : 'M') + r1(xp(p.x) * 10) + ' ' + r1(1000 - yp(p.y) * 10) + ' ';
+        pen = true;
+      });
+      return d.trim();
+    };
+    const curvePath = toPath(fin);
+    const rawPath = clampBinds ? toPath(raw) : '';
+
+    const xStep = this.niceStep(span);
+    const xTicks = [], xMinor = [];
+    const xFirst = Math.ceil(xmin / xStep - 1e-9) * xStep;
+    for (let v = xFirst; v <= xmax + 1e-9; v += xStep) xTicks.push({ pct: r2(xp(v)), label: this.fmt(v, 2) });
+    for (let v = xFirst - xStep / 2; v <= xmax + 1e-9; v += xStep) if (v >= xmin - 1e-9) xMinor.push({ pct: r2(xp(v)) });
+    const yTicks = [], yMinor = [];
+    for (let v = yMin; v <= yHi + 1e-9; v += yStep) yTicks.push({ pct: r2(yp(v)), label: this.impactTick(v, u) });
+    for (let v = yMin + yStep / 2; v < yHi; v += yStep) yMinor.push({ pct: r2(yp(v)) });
+    const zeroX = { show: xmin < 0 && xmax > 0, pct: r2(xp(0)) };
+    const clampLines = plotClamp ? ['minimum', 'maximum'].filter((k) => plotClamp[k] !== null).map((k) => ({ pct: r2(yp(plotClamp[k])), label: 'clamp ' + (k === 'minimum' ? 'min ' : 'max ') + this.impactTick(plotClamp[k], u) })) : [];
+    const errorZones = [];
+    if (plotModel && (plotModel.kind === 'tabulated' || plotModel.kind === 'binned') && plotModel.outside_domain === 'error') {
+      const d0 = breaks[0], d1 = breaks[breaks.length - 1];
+      if (d0 > xmin) errorZones.push({ left: 0, width: r2(xp(d0)) });
+      if (d1 < xmax) errorZones.push({ left: r2(xp(d1)), width: r2(100 - xp(d1)) });
+    }
+    const editOn = s.editOn !== false && !!plotModel;
+    const knotDots = !editOn && plotModel && plotModel.kind === 'tabulated' ? plotModel.points.map((p) => ({ xp: r2(xp(p.x)), yp: r2(yp(fFinal(p.x))), stroke: accent })) : [];
+
+    // ---- Direct manipulation: every handle writes the same model values the lists edit. ----
+    const xSnap = this.niceStep(span) / 20;
+    const snapX = (v) => this.round6(Math.round(v / xSnap) * xSnap);
+    const snapY = (v) => Math.round(v / u.step) * u.step;
+    const fx = (v) => this.plain(snapX(v));
+    const fy = (v) => this.fmtImpactNum(snapY(v), u);
+    const inX = (v) => Math.min(xmax, Math.max(xmin, v));
+    const handles = [], guides = [];
+    const H = (spec) => {
+      // spec: id, x, y (data), axes 'xy'|'x'|'y', apply(c, x, y), kind 'knot'|'bar'|'edge'|'param'|'clamp', label, aria
+      const shapes = {
+        knot: { w: 14, h: 14, r: '50%', bg: '#FFFFFF', bc: accent },
+        bar: { w: 30, h: 10, r: '5px', bg: accent, bc: '#FFFFFF' },
+        edge: { w: 10, h: 30, r: '5px', bg: '#FFFFFF', bc: accent },
+        param: { w: 14, h: 14, r: '3px', bg: accent, bc: '#FFFFFF' },
+        clamp: { w: 26, h: 10, r: '5px', bg: '#6B7280', bc: '#FFFFFF' }
+      };
+      const sh = shapes[spec.kind];
+      const cursor = spec.axes === 'xy' ? 'move' : spec.axes === 'x' ? 'ew-resize' : 'ns-resize';
+      const commit = (x, y) => mut((c) => spec.apply(c, spec.axes === 'y' ? spec.x : x, spec.axes === 'x' ? spec.y : y));
+      const toData = (e) => {
+        const b = this.drag.box;
+        const tx = (e.clientX - b.left) / b.width, ty = 1 - (e.clientY - b.top) / b.height;
+        return { x: this.drag.xmin + tx * (this.drag.xmax - this.drag.xmin), y: this.drag.yMin + ty * (this.drag.yHi - this.drag.yMin) };
+      };
+      const xpv = r2(Math.min(100, Math.max(0, xp(spec.x)))), ypv = r2(Math.min(100, Math.max(0, yp(spec.y))));
+      handles.push({
+        aria: spec.aria, title: spec.aria + (spec.axes === 'xy' ? ' — drag, or use arrow keys' : spec.axes === 'x' ? ' — drag sideways, or ← →' : ' — drag up or down, or ↑ ↓'),
+        xp: xpv, yp: ypv, w: sh.w, h: sh.h, r: sh.r, bg: sh.bg, bc: sh.bc, cursor,
+        lc: spec.kind === 'clamp' ? '#4A5160' : accent,
+        label: spec.label || '', hasLabel: !!spec.label, lshift: xpv > 85 ? '-100%' : xpv < 10 ? '0%' : '-50%',
+        down: (e) => {
+          const plot = e.currentTarget.closest('[data-plot]');
+          if (!plot) return;
+          e.preventDefault();
+          try { e.currentTarget.setPointerCapture(e.pointerId); } catch (e2) { /* capture unsupported */ }
+          this.drag = { id: spec.id, box: plot.getBoundingClientRect(), xmin, xmax, yMin, yHi };
+          this.forceUpdate();
+        },
+        move: (e) => {
+          if (!this.drag || this.drag.id !== spec.id) return;
+          const d = toData(e);
+          commit(d.x, d.y);
+        },
+        up: (e) => {
+          if (!this.drag || this.drag.id !== spec.id) return;
+          try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (e2) { /* already released */ }
+          this.drag = null;
+          this.forceUpdate();
+        },
+        key: (e) => {
+          const k = e.key;
+          const dx = (k === 'ArrowRight' ? 1 : k === 'ArrowLeft' ? -1 : 0) * (spec.axes === 'y' ? 0 : xSnap);
+          const dy = (k === 'ArrowUp' ? 1 : k === 'ArrowDown' ? -1 : 0) * (spec.axes === 'x' ? 0 : u.step);
+          if (!dx && !dy) return;
+          e.preventDefault();
+          const mult = e.shiftKey ? 10 : 1;
+          commit(spec.x + dx * mult, spec.y + dy * mult);
+        }
+      });
+    };
+
+    if (editOn && plotModel.kind === 'tabulated') {
+      const pts = plotModel.points;
+      pts.forEach((p, i) => H({
+        id: 'knot-' + i, kind: 'knot', axes: 'xy', x: p.x, y: p.y,
+        aria: 'Knot ' + (i + 1) + ': ' + this.fmt(p.x, 3) + ' ' + xu + ', ' + this.impactTick(p.y, u),
+        apply: (c, x, y) => {
+          const lo = i > 0 ? this.num(c.tab.points[i - 1].x) + xSnap : -Infinity;
+          const hi = i < c.tab.points.length - 1 ? this.num(c.tab.points[i + 1].x) - xSnap : Infinity;
+          c.tab.points[i].x = fx(Math.min(hi, Math.max(lo, inX(x))));
+          c.tab.points[i].y = fy(y);
+        }
+      }));
+    }
+    if (editOn && plotModel.kind === 'binned') {
+      const e = plotModel.bin_edges, v = plotModel.values;
+      v.forEach((val, i) => H({
+        id: 'bin-' + i, kind: 'bar', axes: 'y', x: (e[i] + e[i + 1]) / 2, y: val,
+        aria: 'Bin ' + (i + 1) + ' value ' + this.impactTick(val, u),
+        apply: (c, x, y) => { c.bin.values[i] = fy(y); }
+      }));
+      // Interior edges only; the outer edges stay editable in the list.
+      e.forEach((ed, i) => i > 0 && i < e.length - 1 && H({
+        id: 'edge-' + i, kind: 'edge', axes: 'x', x: ed,
+        y: (v[i - 1] + v[i]) / 2,
+        aria: 'Bin edge ' + (i + 1) + ' at ' + this.fmt(ed, 3) + ' ' + xu,
+        apply: (c, x) => {
+          const lo = i > 0 ? this.num(c.bin.edges[i - 1]) + xSnap : -Infinity;
+          const hi = i < c.bin.edges.length - 1 ? this.num(c.bin.edges[i + 1]) - xSnap : Infinity;
+          c.bin.edges[i] = fx(Math.min(hi, Math.max(lo, inX(x))));
+        }
+      }));
+    }
+    if (editOn && plotModel.kind === 'sigmoid') {
+      const g = plotModel, k = g.steepness, top = g.offset + g.amplitude;
+      const rising = k >= 0;
+      H({ id: 'sig-mid', kind: 'param', axes: 'x', x: g.midpoint, y: fRaw(g.midpoint), label: 'midpoint', aria: 'Sigmoid midpoint ' + this.fmt(g.midpoint, 3) + ' ' + xu,
+        apply: (c, x) => { c.sig.midpoint = fx(inX(x)); } });
+      if (k !== 0) {
+        const xs2 = g.midpoint + 2 / k;
+        if (xs2 >= xmin && xs2 <= xmax) H({ id: 'sig-steep', kind: 'knot', axes: 'x', x: xs2, y: fRaw(xs2), label: 'steepness', aria: 'Sigmoid steepness ' + this.fmt(k, 4),
+          apply: (c, x) => { const mid = this.num(c.sig.midpoint); const d = inX(x) - mid; if (Math.abs(d) >= xSnap) c.sig.steepness = this.plain(this.round6(2 / d)); } });
+      }
+      const xTopSide = rising ? xmax - span * 0.04 : xmin + span * 0.04;
+      const xBaseSide = rising ? xmin + span * 0.04 : xmax - span * 0.04;
+      H({ id: 'sig-top', kind: 'bar', axes: 'y', x: xTopSide, y: top, label: 'top', aria: 'Sigmoid top level ' + this.impactTick(top, u),
+        apply: (c, x, y) => { const off = this.num(c.sig.offset); c.sig.amplitude = fy(Math.max(0, snapY(y) - off)); } });
+      H({ id: 'sig-base', kind: 'bar', axes: 'y', x: xBaseSide, y: g.offset, label: 'base', aria: 'Sigmoid base level ' + this.impactTick(g.offset, u),
+        apply: (c, x, y) => { const t = this.num(c.sig.offset) + this.num(c.sig.amplitude); const off = snapY(y); c.sig.offset = fy(Math.min(off, t)); c.sig.amplitude = fy(Math.max(0, t - Math.min(off, t))); } });
+      if (g.zero_below !== null && g.zero_below >= xmin && g.zero_below <= xmax) {
+        guides.push({ xp: r2(xp(g.zero_below)) });
+        H({ id: 'sig-zb', kind: 'edge', axes: 'x', x: g.zero_below, y: 0, label: 'zero below', aria: 'Zero below ' + this.fmt(g.zero_below, 3) + ' ' + xu,
+          apply: (c, x) => { c.sig.zero_below = fx(inX(x)); } });
+      }
+    }
+    if (editOn && plotModel.kind === 'linear') {
+      const xa = xmin + span * 0.2, xb = xmin + span * 0.8;
+      const lineAt = (c, x) => this.num(c.lin.slope) * x + this.num(c.lin.intercept);
+      const setLine = (c, x1, y1, x2, y2) => { const sl = (y2 - y1) / (x2 - x1); c.lin.slope = this.plain(this.round6(sl)); c.lin.intercept = fy(y1 - sl * x1); };
+      H({ id: 'lin-a', kind: 'knot', axes: 'y', x: xa, y: fRaw(xa), aria: 'Line point at ' + this.fmt(xa, 3) + ' ' + xu, label: '',
+        apply: (c, x, y) => setLine(c, xa, snapY(y), xb, lineAt(c, xb)) });
+      H({ id: 'lin-b', kind: 'knot', axes: 'y', x: xb, y: fRaw(xb), aria: 'Line point at ' + this.fmt(xb, 3) + ' ' + xu, label: '',
+        apply: (c, x, y) => setLine(c, xa, lineAt(c, xa), xb, snapY(y)) });
+    }
+    if (editOn && plotClamp) {
+      ['minimum', 'maximum'].forEach((kk) => {
+        if (plotClamp[kk] === null) return;
+        H({ id: 'clamp-' + kk, kind: 'clamp', axes: 'y', x: xmin + span * 0.03, y: plotClamp[kk], aria: 'Clamp ' + kk + ' ' + this.impactTick(plotClamp[kk], u),
+          apply: (c, x, y) => {
+            const other = this.num(c.clamp[kk === 'minimum' ? 'maximum' : 'minimum']);
+            let v = snapY(y);
+            if (Number.isFinite(other)) v = kk === 'minimum' ? Math.min(v, other) : Math.max(v, other);
+            c.clamp[kk] = fy(v);
+          } });
+      });
+    }
+    const editHints = {
+      tabulated: 'Drag a knot to move it; it stays between its neighbours. Arrow keys nudge the focused knot.',
+      binned: 'Drag a bar up or down to change a bin value; drag a boundary between bins sideways. The outer edges are set in the list.',
+      sigmoid: 'Drag the midpoint or steepness handle sideways, and the top or base bar up or down.',
+      linear: 'Drag either point up or down; the line passes through both.'
+    };
+
+    // Monotonicity of the full function over the plotted range.
+    let up = false, down = false;
+    const finY = fin.filter((p) => Number.isFinite(p.y));
+    const tol = 1e-12 * Math.max(1, ...finY.map((p) => Math.abs(p.y)));
+    for (let i = 1; i < finY.length; i++) {
+      const dy = finY[i].y - finY[i - 1].y;
+      if (dy > tol) up = true;
+      if (dy < -tol) down = true;
+    }
+    const mono = !plotModel ? 'unknown' : up && down ? 'non_monotone' : up ? 'non_decreasing' : down ? 'non_increasing' : 'constant';
+
+    // Probe
+    const px = Math.min(Math.max(xmin, Number.isFinite(Number(s.probe)) ? Number(s.probe) : xmin), xmax);
+    const pyv = fFinal(px);
+    const probeOk = Number.isFinite(pyv);
+    const probe = {
+      x: px, ok: probeOk, xp: r2(xp(px)), yp: probeOk ? r2(yp(pyv)) : 0,
+      color: probeOk ? '#B45309' : '#B91C1C',
+      readout: this.fmt(px, 3) + ' ' + xu + ' → ' + (probeOk ? this.impactTick(pyv, u) : !plotModel ? 'model incomplete' : Number.isNaN(fRaw(px)) && errorZones.length ? 'out_of_domain' : 'non_finite_result')
+    };
+
+    // Unit-aware numeric fields.
+    const field = (get, put, kind, extra) => {
+      const isImp = kind === 'impact';
+      const optional = !!(extra && extra.optional);
+      const step = isImp ? u.step : kind === 'rate' ? 0.01 : Math.max(this.niceStep(span) / 10, 0.0001);
+      const format = (v) => (isImp ? this.fmtImpactNum(v, u) : this.plain(v));
+      const prefix = isImp ? u.prefix : '';
+      const suffix = isImp ? u.suffix : kind === 'rate' ? 'per ' + xu : kind === 'plain' ? '' : xu;
+      return Object.assign({
+        id: '', aria: '', label: '', sdk: '', col: 'auto', border: '#C9CDD4',
+        value: get(s), prefix, suffix, hasPrefix: !!prefix, hasSuffix: !!suffix, placeholder: optional ? 'None' : '',
+        onChange: (e) => { const v = e.target.value; mut((c) => put(c, v)); },
+        onBlur: () => { const cur = get(this.st()); if (optional && this.blank(cur)) return; const v = this.num(cur); if (Number.isFinite(v)) mut((c) => put(c, format(v))); },
+        onKeyDown: (e) => {
+          if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+          e.preventDefault();
+          const cur = this.num(get(this.st()));
+          const next = (Number.isFinite(cur) ? cur : 0) + (e.key === 'ArrowUp' ? 1 : -1) * step * (e.shiftKey ? 10 : 1);
+          mut((c) => put(c, format(next)));
+        }
+      }, extra || {});
+    };
+
+    const pointRows = s.tab.points.map((p, i) => ({
+      n: i + 1,
+      xf: field((c) => c.tab.points[i] ? c.tab.points[i].x : '', (c, v) => { c.tab.points[i].x = v; }, 'exposure', { aria: 'Knot ' + (i + 1) + ' x', border: bad('/model/points/' + i + '/x') }),
+      yf: field((c) => c.tab.points[i] ? c.tab.points[i].y : '', (c, v) => { c.tab.points[i].y = v; }, 'impact', { aria: 'Knot ' + (i + 1) + ' y', border: bad('/model/points/' + i + '/y') }),
+      removeAria: 'Remove knot ' + (i + 1), cannotRemove: s.tab.points.length <= 2,
+      remove: () => mut((c) => { c.tab.points.splice(i, 1); })
+    }));
+    const nb = s.bin.values.length;
+    const binRows = s.bin.values.map((v, i) => ({
+      ef: field((c) => c.bin.edges[i] ?? '', (c, val) => { c.bin.edges[i] = val; }, 'exposure', { aria: 'Bin ' + (i + 1) + ' lower edge', border: bad('/model/bin_edges/' + i) }),
+      vf: field((c) => c.bin.values[i] ?? '', (c, val) => { c.bin.values[i] = val; }, 'impact', { aria: 'Bin ' + (i + 1) + ' value', border: bad('/model/values/' + i) }),
+      removeAria: 'Remove bin ' + (i + 1), cannotRemove: nb <= 1,
+      remove: () => mut((c) => { c.bin.values.splice(i, 1); c.bin.edges.splice(i === c.bin.edges.length - 2 ? i + 1 : i, 1); })
+    }));
+    const lastEdge = field((c) => c.bin.edges[c.bin.edges.length - 1] ?? '', (c, val) => { c.bin.edges[c.bin.edges.length - 1] = val; }, 'exposure', { aria: 'Final bin edge', border: bad('/model/bin_edges/' + nb) });
+
+    const paramFields = s.kind === 'sigmoid' ? [
+      field((c) => c.sig.midpoint, (c, v) => { c.sig.midpoint = v; }, 'exposure', { id: 'p-mid', label: 'Midpoint', sdk: 'midpoint', border: bad('/model/midpoint') }),
+      field((c) => c.sig.steepness, (c, v) => { c.sig.steepness = v; }, 'rate', { id: 'p-st', label: 'Steepness', sdk: 'steepness', border: bad('/model/steepness') }),
+      field((c) => c.sig.offset, (c, v) => { c.sig.offset = v; }, 'impact', { id: 'p-off', label: 'Lower level', sdk: 'offset', border: bad('/model/offset') }),
+      field((c) => c.sig.amplitude, (c, v) => { c.sig.amplitude = v; }, 'impact', { id: 'p-amp', label: 'Height', sdk: 'amplitude ≥ 0', border: bad('/model/amplitude') }),
+      field((c) => c.sig.zero_below, (c, v) => { c.sig.zero_below = v; }, 'exposure', { id: 'p-zb', label: 'Zero below', sdk: 'zero_below, strict', optional: true, col: '1 / -1', border: bad('/model/zero_below') })
+    ] : s.kind === 'linear' ? [
+      field((c) => c.lin.slope, (c, v) => { c.lin.slope = v; }, 'rate', { id: 'p-sl', label: 'Slope', sdk: 'slope', border: bad('/model/slope') }),
+      field((c) => c.lin.intercept, (c, v) => { c.lin.intercept = v; }, 'impact', { id: 'p-ic', label: 'Intercept', sdk: 'intercept', border: bad('/model/intercept') })
+    ] : [];
+
+    const clampBad = (k) => (errPaths['/clamp/' + k] || errPaths['/clamp'] ? '#B91C1C' : '#C9CDD4');
+    const clampFields = [
+      field((c) => c.clamp.minimum, (c, v) => { c.clamp.minimum = v; }, 'impact', { id: 'c-min', label: 'Minimum', sdk: 'clamp.minimum', optional: true, border: clampBad('minimum') }),
+      field((c) => c.clamp.maximum, (c, v) => { c.clamp.maximum = v; }, 'impact', { id: 'c-max', label: 'Maximum', sdk: 'clamp.maximum', optional: true, border: clampBad('maximum') })
+    ];
+    const clampText = def.clamp === null ? 'null (no clamp)' : '[' + (def.clamp.minimum === null ? 'null' : this.fmt(def.clamp.minimum, 6)) + ', ' + (def.clamp.maximum === null ? 'null' : this.fmt(def.clamp.maximum, 6)) + ']';
+
+    // Model kind picker
+    const kindDefs = [
+      { id: 'tabulated', label: 'Tabulated', tag: 'points', glyph: 'M2 18 L10 16 L18 9 L28 5 L38 4' },
+      { id: 'binned', label: 'Binned', tag: 'bin_edges + values', glyph: 'M2 18 L12 18 L12 12 L22 12 L22 6 L38 6' },
+      { id: 'sigmoid', label: 'Sigmoid', tag: 'logistic', glyph: 'M2 18 C14 18 14 2 26 2 L38 2' },
+      { id: 'linear', label: 'Linear', tag: 'slope + intercept', glyph: 'M2 18 L38 3' }
+    ];
+    const kinds = kindDefs.map((k) => {
+      const on = s.kind === k.id;
+      return { label: k.label, tag: k.tag, glyph: k.glyph, pressed: on, bg: on ? '#EEF2FF' : '#FFFFFF', border: on ? accent : '#C9CDD4', stroke: on ? accent : '#6B7280', pick: () => mut((c) => { c.kind = k.id; }) };
+    });
+    const formulas = {
+      linear: 'raw(x) = slope · x + intercept',
+      sigmoid: 'raw(x) = offset + amplitude · (L(steepness · (x − midpoint))' + (s.sig.origin === 'subtract_at_zero' ? ' − L(−steepness · midpoint)' : '') + '); 0 when x < zero_below',
+      tabulated: { linear: 'linear interpolation between knots; y_i at x_i', step_left: 'step: y_i on [x_i, x_(i+1)); y_i at x_i', step_right: 'step: y_(i+1) on (x_i, x_(i+1)]; y_i at x_i' }[s.tab.interpolation],
+      binned: 'value_i on [edge_i, edge_(i+1)); last bin includes the final edge'
+    };
+
+    // Provenance
+    const originDefs = [['user_defined', 'User-defined'], ['published', 'Published'], ['imported', 'Imported'], ['derived', 'Derived']];
+    const origins = originDefs.map(([id, label]) => {
+      const on = s.prov.origin === id;
+      return { label, pressed: on, bg: on ? '#14181F' : 'transparent', fg: on ? '#FFFFFF' : '#4A5160', pick: () => mut((c) => { c.prov.origin = id; if ((id === 'published' || id === 'imported') && !c.prov.source_id && c.prov.sources.length) c.prov.source_id = c.prov.sources[0].id; }) };
+    });
+    const originHints = {
+      user_defined: 'Coefficients you authored. Sources are optional evidence.',
+      published: 'Coefficients taken from a cited source; pick which source record below.',
+      imported: 'Coefficients produced by an importer from a cited source.',
+      derived: 'Coefficients derived from parent definitions, referenced by their hashes.'
+    };
+    const sourcePicks = s.prov.sources.filter((x) => !this.blank(x.id)).map((x) => {
+      const on = s.prov.source_id === x.id;
+      return { label: x.id, pressed: on, bg: on ? '#EEF2FF' : '#FFFFFF', border: on ? accent : errPaths['/provenance/origin/source_id'] ? '#B91C1C' : '#C9CDD4', pick: () => mut((c) => { c.prov.source_id = x.id; }) };
+    });
+    const sourceRows = s.prov.sources.map((x, i) => {
+      const setF = (k) => (e) => { const v = e.target.value; mut((c) => { const old = c.prov.sources[i].id; c.prov.sources[i][k] = v; if (k === 'id' && c.prov.source_id === old) c.prov.source_id = v; }); };
+      const pfx = '/provenance/sources/' + i;
+      return {
+        id: x.id, kind: x.kind, uri: x.uri, revision: x.revision, sha: x.sha,
+        onId: setF('id'), onKind: setF('kind'), onUri: setF('uri'), onRev: setF('revision'), onSha: setF('sha'),
+        idBorder: bad(pfx + '/id'), uriBorder: bad(pfx + '/uri'), shaBorder: bad(pfx + '/content_sha256'),
+        idAria: 'Source ' + (i + 1) + ' id', kindAria: 'Source ' + (i + 1) + ' kind', uriAria: 'Source ' + (i + 1) + ' URI', revAria: 'Source ' + (i + 1) + ' revision', shaAria: 'Source ' + (i + 1) + ' content SHA-256',
+        removeAria: 'Remove source ' + (i + 1),
+        remove: () => mut((c) => { const gone = c.prov.sources[i].id; c.prov.sources.splice(i, 1); if (c.prov.source_id === gone) c.prov.source_id = ''; })
+      };
+    });
+
+    // Export
+    const hash = valid ? this.definitionHash(def) : null;
+    const canonical = valid ? this.canon(def) : '';
+    let python = '', pyNote = '';
+    if (valid) {
+      const py = (v) => (v === null ? 'None' : Number.isInteger(v) ? v.toFixed(1) : String(v));
+      const cal = def.calibration, cl = def.clamp;
+      const head = 'from crc_framework import ';
+      const tail = '\n\nimpact_result = request.impact(\n    DAMAGE_FN,\n    name=' + JSON.stringify(cal.exposure_variable + '_' + cal.impact_metric) + ',\n    value_unit=' + JSON.stringify(cal.impact_unit) + ',\n    value_semantics=' + JSON.stringify(cal.impact_metric) + ',\n)';
+      const cmt = '# definition_hash ' + hash + '\n# ' + cal.exposure_variable + ' [' + cal.exposure_unit + '] -> ' + cal.impact_metric + ' [' + cal.impact_unit + ']\n';
+      if (m.kind === 'linear') {
+        python = head + 'LinearImpact\n\n' + cmt + 'DAMAGE_FN = LinearImpact(\n    slope=' + py(m.slope) + ',\n    intercept=' + py(m.intercept) + ',\n    minimum=' + py(cl ? cl.minimum : null) + ',\n    maximum=' + py(cl ? cl.maximum : null) + ',\n)' + tail;
+      } else if (m.kind === 'sigmoid' && m.origin_adjustment === 'none' && !cl) {
+        python = head + 'SigmoidImpact\n\n' + cmt + 'DAMAGE_FN = SigmoidImpact(\n    midpoint=' + py(m.midpoint) + ',\n    steepness=' + py(m.steepness) + ',\n    minimum=' + py(m.offset) + ',\n    maximum=' + py(m.offset + m.amplitude) + ',\n    zero_below=' + py(m.zero_below) + ',\n)' + tail;
+      } else if (m.kind === 'tabulated' && m.interpolation === 'linear' && m.outside_domain === 'clamp' && m.points.every((p, i) => i === 0 || p.y >= m.points[i - 1].y) && (!cl || m.points.every((p) => (cl.minimum === null || p.y >= cl.minimum) && (cl.maximum === null || p.y <= cl.maximum)))) {
+        python = head + 'PiecewiseLinearImpact\n\n' + cmt + 'DAMAGE_FN = PiecewiseLinearImpact(\n    exposure=[' + m.points.map((p) => py(p.x)).join(', ') + '],\n    impact=[' + m.points.map((p) => py(p.y)).join(', ') + '],\n)' + tail;
+      } else {
+        pyNote = '# No crc_framework 0.4.1 class executes this definition exactly yet\n# (' + (m.kind === 'binned' ? 'binned models' : m.kind === 'sigmoid' ? 'sigmoid with a clamp or subtract_at_zero' : 'step interpolation, error outside the domain, falling knots or a binding clamp') + ').\n# Use the JSON definition.';
+      }
+    }
+    let csv = '';
+    if (plotModel) {
+      const head = 'x_' + xu.replace(/[^A-Za-z0-9]+/g, '_') + ',y_' + String(s.cal.impact_unit || '').replace(/[^A-Za-z0-9%]+/g, '_');
+      if (m.kind === 'tabulated') csv = head + '\n' + m.points.map((p) => p.x + ',' + p.y).join('\n');
+      else if (m.kind === 'binned') csv = 'lower_edge,upper_edge,value\n' + m.values.map((v, i) => m.bin_edges[i] + ',' + m.bin_edges[i + 1] + ',' + v).join('\n');
+      else { const rows = []; for (let i = 0; i <= 10; i++) { const x = xmin + span * i / 10; rows.push(this.round6(x) + ',' + this.round6(fFinal(x))); } csv = head + '\n' + rows.join('\n'); }
+    }
+    const tab = s.exportTab;
+    const exportText = !valid ? this.pretty(JSON.parse(JSON.stringify(def, (k, v) => (typeof v === 'number' && !Number.isFinite(v) ? null : v)))) :
+      tab === 'canonical' ? canonical : tab === 'python' ? (python || pyNote) : tab === 'csv' ? csv : this.pretty(def);
+    const exportNote = !valid ? 'Fix the items above; the definition, its canonical form and hash appear once it validates.' :
+      tab === 'canonical' ? 'crc-canonical-json/1: sorted keys, shortest round-trip binary64 numbers. definition_hash is the SHA-256 of these UTF-8 bytes and is never embedded in the definition.' :
+      tab === 'python' ? (python ? 'Executable today with the crc_framework classes; the JSON definition remains the source of truth.' : 'The contract is ahead of the executable classes for this model.') :
+      tab === 'csv' ? (m.kind === 'tabulated' ? 'Knots as authored.' : m.kind === 'binned' ? 'One row per bin.' : 'Final response sampled at 11 points across the plot range.') :
+      'impact_definition 1.0 with every default materialized. Holds no exposure data, output name or spatial settings.';
+    const tabStyle = (on) => (on ? { bg: '#E7E9EC', fg: '#14181F', border: '#E7E9EC' } : { bg: 'transparent', fg: '#E7E9EC', border: '#3A414D' });
+    const exportTabs = [['definition', 'Definition JSON'], ['canonical', 'Canonical'], ['python', 'Python'], ['csv', 'CSV']].map(([id, label]) => Object.assign({ label, selected: tab === id, pick: () => mut((c) => { c.exportTab = id; }) }, tabStyle(tab === id)));
+
+    // Calibration handlers
+    const pickPreset = (e) => {
+      const id = e.target.value;
+      const h = this.hazards()[id];
+      mut((c) => {
+        Object.assign(c, this.seedModels(id, c.cal.impactPreset));
+        c.cal.preset = id; c.cal.exposure_variable = h.variable; c.cal.exposure_unit = h.unit;
+        c.xMin = String(h.domain[0]); c.xMax = String(h.domain[1]);
+        c.probe = h.domain[0] + (h.domain[1] - h.domain[0]) * 0.4;
+      });
+    };
+    const pickImpact = (e) => {
+      const id = e.target.value;
+      mut((c) => {
+        const from = c.cal.impactPreset, ip = this.impacts()[id];
+        const factor = from === 'damage_ratio' && id === 'damage_percent' ? 100 : from === 'damage_percent' && id === 'damage_ratio' ? 0.01 : 1;
+        c.cal.impactPreset = id; c.cal.impact_metric = ip.metric; c.cal.impact_unit = ip.unit;
+        const nu = this.impactFmt(c.cal);
+        const conv = (raw) => { if (this.blank(raw)) return raw; const v = this.num(raw); return Number.isFinite(v) ? this.fmtImpactNum(v * factor, nu) : raw; };
+        c.tab.points.forEach((p) => { p.y = conv(p.y); });
+        c.bin.values = c.bin.values.map(conv);
+        c.sig.offset = conv(c.sig.offset); c.sig.amplitude = conv(c.sig.amplitude);
+        c.lin.intercept = conv(c.lin.intercept);
+        const sl = this.num(c.lin.slope); if (Number.isFinite(sl)) c.lin.slope = this.plain(sl * factor);
+        c.clamp.minimum = conv(c.clamp.minimum); c.clamp.maximum = conv(c.clamp.maximum);
+      });
+    };
+    const setCal = (k) => (e) => { const v = e.target.value; mut((c) => { c.cal[k] = v; }); };
+    const setProv = (k) => (e) => { const v = e.target.value; mut((c) => { c.prov[k] = v; }); };
+    const on = {
+      preset: pickPreset, impactPreset: pickImpact,
+      exposure_variable: setCal('exposure_variable'), exposure_unit: setCal('exposure_unit'),
+      impact_metric: setCal('impact_metric'), impact_unit: setCal('impact_unit'),
+      xMin: (e) => { const v = e.target.value; mut((c) => { c.xMin = v; }); },
+      xMax: (e) => { const v = e.target.value; mut((c) => { c.xMax = v; }); },
+      probe: (e) => { const v = Number(e.target.value); mut((c) => { c.probe = v; }); },
+      interpolation: (e) => { const v = e.target.value; mut((c) => { c.tab.interpolation = v; }); },
+      tabOutside: (e) => { const v = e.target.value; mut((c) => { c.tab.outside = v; }); },
+      binOutside: (e) => { const v = e.target.value; mut((c) => { c.bin.outside = v; }); },
+      origin_adjustment: (e) => { const v = e.target.value; mut((c) => { c.sig.origin = v; }); },
+      importer_name: setProv('importer_name'), importer_version: setProv('importer_version'), importer_sha: setProv('importer_sha'),
+      description: setProv('description'), derived: setProv('derived')
+    };
+    const err = {
+      exposure_variable: bad('/calibration/exposure_variable'), exposure_unit: bad('/calibration/exposure_unit'),
+      impact_metric: bad('/calibration/impact_metric'), impact_unit: bad('/calibration/impact_unit'),
+      importer_name: bad('/provenance/origin/importer_name'), importer_version: bad('/provenance/origin/importer_version'),
+      importer_sha: bad('/provenance/origin/importer_build_sha256'), description: bad('/provenance/origin/description'),
+      derived: Object.keys(errPaths).some((k) => k.indexOf('/provenance/derived_from') === 0) ? '#B91C1C' : '#C9CDD4'
+    };
+    const iuHints = {
+      damage_ratio: 'Unit "1" is dimensionless (aliases: fraction, ratio). Set a 0 to 1 clamp below to bound it.',
+      damage_percent: 'Unit "%", percentage points from 0 to 100.',
+      loss: 'A currency token such as USD, or per area such as EUR/m².',
+      downtime: 'Unit "d" (aliases: day, days).',
+      crop_yield_change: 'Dimensionless change; negative values are losses.',
+      score: 'Dimensionless score.',
+      custom: 'Any declared unit token; no physical conversion is implied.'
+    };
+    const metricLabel = String(s.cal.impact_metric || 'impact').replace(/_/g, ' ');
+
+    return {
+      accent, on, err, cal: s.cal, xMinStr: s.xMin, xMaxStr: s.xMax,
+      iu: { label: s.cal.impact_unit || '—', placeholder: u.currency ? 'USD' : '1', hint: iuHints[s.cal.impactPreset] || iuHints.custom },
+      kinds, formula: formulas[s.kind], model: { kind: s.kind },
+      isTabulated: s.kind === 'tabulated', isBinned: s.kind === 'binned', isSigmoid: s.kind === 'sigmoid', isParametric: s.kind === 'sigmoid' || s.kind === 'linear',
+      tab: s.tab, bin: s.bin, sig: s.sig,
+      pointRows, binRows, lastEdge, paramFields, clampFields, clampText,
+      addPoint: () => mut((c) => { const p = c.tab.points, last = p[p.length - 1]; const lx = this.num(last && last.x); p.push({ x: Number.isFinite(lx) ? this.plain(lx + Math.max(span / 10, 0.001)) : '', y: last ? last.y : '' }); }),
+      addBin: () => mut((c) => { const e = c.bin.edges, lx = this.num(e[e.length - 1]); e.push(Number.isFinite(lx) ? this.plain(lx + Math.max(span / 10, 0.001)) : ''); c.bin.values.push(c.bin.values[c.bin.values.length - 1] ?? ''); }),
+      clampUnit: () => mut((c) => { const nu = this.impactFmt(c.cal); c.clamp.minimum = this.fmtImpactNum(0, nu); c.clamp.maximum = this.fmtImpactNum(nu.unit === '%' ? 100 : 1, nu); }),
+      clampNone: () => mut((c) => { c.clamp.minimum = ''; c.clamp.maximum = ''; }),
+      chartTitle: (s.cal.exposure_variable || 'exposure') + ' (' + xu + ') → ' + metricLabel + ' (' + (s.cal.impact_unit || '—') + ')',
+      chartAria: s.kind + ' impact function of ' + (s.cal.exposure_variable || 'exposure') + ' against ' + metricLabel,
+      xAxisTitle: (s.cal.exposure_variable || 'exposure') + ' (' + xu + ')',
+      yAxisTitle: metricLabel.charAt(0).toUpperCase() + metricLabel.slice(1) + ' (' + (s.cal.impact_unit || '—') + ')',
+      rawNote: clampBinds ? 'Dashed: raw model before the final clamp' : '',
+      g: { padL: u.currency ? 96 : 84, titleGap: u.currency ? 66 : 54 },
+      xTicks, yTicks, xMinor, yMinor, zeroX, clampLines, errorZones, knotDots, curvePath, rawPath,
+      handles, guides, editOn,
+      editHint: editHints[s.kind] + (plotClamp ? ' Grey bars on the left move the clamp.' : ''),
+      editBtn: editOn ? { bg: '#EEF2FF', fg: '#14181F', border: accent } : { bg: '#FFFFFF', fg: '#4A5160', border: '#C9CDD4' },
+      toggleEdit: () => mut((c) => { c.editOn = c.editOn === false; }),
+      mono: mono.replace(/_/g, '-'),
+      xmin: this.round6(xmin), xmax: this.round6(xmax), probeStep: Math.max(0.0001, this.round6(span / 400)), probe,
+      prov: s.prov, origins, originHint: originHints[s.prov.origin],
+      needsSource: s.prov.origin === 'published' || s.prov.origin === 'imported',
+      isImported: s.prov.origin === 'imported', isDerived: s.prov.origin === 'derived',
+      sourcePicks, noSources: sourcePicks.length === 0, sourceRows,
+      addSource: () => mut((c) => { const n = c.prov.sources.length + 1; c.prov.sources.push({ id: 'source-' + n, kind: 'publication', uri: '', revision: '', sha: '' }); if ((c.prov.origin === 'published' || c.prov.origin === 'imported') && !c.prov.source_id) c.prov.source_id = 'source-' + n; }),
+      errors, hasErrors: !valid,
+      hashText: valid ? hash : 'not available while the definition is invalid',
+      hashColor: valid ? '#86EFAC' : '#FCA5A5',
+      exportTabs, exportText, exportNote,
+      copyLabel: s.copied ? 'Copied' : 'Copy',
+      copyExport: () => {
+        try { navigator.clipboard.writeText(exportText).then(() => this.setState({ copied: true }), () => {}); } catch (e2) { /* clipboard unavailable */ }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
