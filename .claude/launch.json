@@ -4,8 +4,8 @@
     {
       "name": "design",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8000", "--directory", "design/damage-function-designer"],
-      "port": 8000
+      "runtimeArgs": ["-m", "http.server", "4310", "--directory", "design/damage-function-designer"],
+      "port": 4310
     }
   ]
 }

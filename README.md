@@ -21,10 +21,10 @@ Final clamp, Provenance and Export.
 Some browsers block the scripts over `file://`, so serve the folder:
 
 ```bash
-python3 -m http.server 8000 --directory design/damage-function-designer
+python3 -m http.server 4310 --directory design/damage-function-designer
 ```
 
-Then open http://localhost:8000/Main.dc.html.
+Then open http://localhost:4310/Main.dc.html.
 
 ## Updating the design
 
